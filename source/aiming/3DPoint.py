@@ -17,19 +17,20 @@ profile = pipeline.start(config)
 
 # bbox[x coordinate of the top left of the bounding box, y coordinate of the top left of the bounding box, width of box, height of box]
 def WorldCoordinate(bbox):
+    frames = pipeline.wait_for_frames()     # gets all frames
+    depth_frame = frames.get_depth_frame()  # gets the depth frame
+    depth_intrin = depth_frame.profile.as_video_stream_profile().intrinsics
+    depth_value = 0.5
+    depth_pixel = [depth_intrin.ppx, depth_intrin.ppy]
+    depth_point = rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel, depth_value)
+    return depth_point
+    if not depth_frame:                     # if there is no aligned_depth_frame or color_frame then leave the loop
+        return None
+
+bbox = [410,140,65,120]
+
+while True:
     try:
-        frames = pipeline.wait_for_frames()     # gets all frames
-        depth_frame = frames.get_depth_frame()  # gets the depth frame
-        depth_intrin = depth_frame.profile.as_video_stream_profile().intrinsics
-        depth_value = 0.5
-        depth_pixel = [depth_intrin.ppx, depth_intrin.ppy]
-        depth_point = rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel, depth_value)
-        return depth_point
-        if not depth_frame:                     # if there is no aligned_depth_frame or color_frame then leave the loop
-            return None
-
-    finally:
+        print(WorldCoordinate(bbox))
+    except:
         pipeline.stop()
-    return None
-
-print(WorldCoordinate())
